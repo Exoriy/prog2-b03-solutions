@@ -852,3 +852,104 @@ Get-ChildItem -Path src\main\java -Recurse -Filter *.java | Select-String "TODO"
 
 
 
+---
+
+## 5. LockSnake: JUnit
+
+### Aufgabe
+
+Für die Klasse `GameState` sollen mindestens 10 JUnit-Testfälle geschrieben werden.
+
+Ich habe die Tests in folgender Datei erstellt:
+
+```text
+src/test/java/de/hsbi/lockgame/logic/GameStateTest.java
+```
+
+Die Tests sind nach dem Muster `given - when - then` aufgebaut.
+
+---
+
+### Getestete Bereiche
+
+Die Tests prüfen verschiedene Bereiche der Spiellogik:
+
+| Testfall | Bedeutung |
+|---|---|
+| `constructorStoresInitialValues` | Der Konstruktor speichert die übergebenen Werte korrekt. |
+| `tickReturnsSameStateWhenDirectionIsNone` | Ohne Richtung ändert sich der Zustand nicht. |
+| `tickReturnsSameStateWhenGameIsNotRunning` | Wenn das Spiel nicht läuft, ändert `tick()` nichts. |
+| `tickMovesSnakeToEmptyCell` | Die Snake bewegt sich auf ein freies Feld. |
+| `tickSetsLostStatusWhenSnakeLeavesLevel` | Das Spiel endet, wenn die Snake das Level verlässt. |
+| `tickStopsSnakeWhenNextCellIsWall` | Eine Wand blockiert die Bewegung. |
+| `tickSetsLostStatusWhenSnakeHitsItself` | Das Spiel endet bei Selbstkollision. |
+| `tickActivatesPinWhenDirectionMatches` | Ein Pin wird bei passender Richtung aktiviert. |
+| `tickDoesNotActivatePinWhenDirectionDoesNotMatch` | Ein Pin wird bei falscher Richtung nicht aktiviert. |
+| `tickKeepsGameRunningWhenNotAllPinsAreSet` | Das Spiel läuft weiter, solange noch Pins offen sind. |
+| `tickSetsWonWhenLastPinIsActivated` | Das Spiel wird gewonnen, wenn alle Pins gesetzt sind. |
+| `pinsListReturnedByGameStateIsImmutable` | Die Pin-Liste im GameState ist nicht von außen veränderbar. |
+
+---
+
+### Die Tests relevant
+
+Die Tests sind relevant, weil sie die zentralen Regeln des Spiels überprüfen.
+
+`GameState.tick()` ist die wichtigste Methode für die Spiellogik. Deshalb teste ich dort normale Bewegungen, blockierte Bewegungen, Verlustbedingungen und Gewinnbedingungen.
+
+Besonders wichtig sind Randfälle:
+
+- keine Richtung gesetzt
+- Spiel ist bereits beendet
+- Bewegung aus dem Level heraus
+- Bewegung gegen eine Wand
+- Selbstkollision
+- Aktivierung eines Pins mit richtiger oder falscher Richtung
+
+Dadurch wird geprüft, dass der Spielzustand nicht nur im normalen Fall funktioniert, sondern auch bei wichtigen Sonderfällen korrekt reagiert.
+
+---
+
+### Die Testfälle unterschiede
+
+Die Tests prüfen unterschiedliche Verhaltensweisen:
+
+- Initialisierung
+- normale Bewegung
+- Stillstand
+- Verlust
+- Gewinn
+- Pin-Logik
+- Wandkollision
+- Selbstkollision
+- Immutability
+
+Dadurch testen die Fälle nicht nur dieselbe Methode mit anderen Zahlen, sondern verschiedene Regeln des Spiels.
+
+---
+
+### Ausführung
+
+Die Tests werden mit Gradle gestartet:
+
+```bash
+.\gradlew test
+```
+
+Die Formatierung wird geprüft mit:
+
+```bash
+.\gradlew spotlessCheck
+```
+
+Der gesamte Build wird geprüft mit:
+
+```bash
+.\gradlew build
+```
+
+Alle Prüfungen waren erfolgreich.
+
+
+
+
