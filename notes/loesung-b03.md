@@ -953,3 +953,152 @@ Alle Prüfungen waren erfolgreich.
 
 
 
+---
+
+## 6. Checkliste
+
+### Calculator
+
+Das Calculator-Projekt wurde bearbeitet.
+
+Erledigte Punkte:
+
+- `Sub` wurde als eigene Java-Klasse implementiert.
+- `Mul` wurde als anonyme Klasse implementiert.
+- `Div` wurde als Lambda-Ausdruck implementiert.
+- Der `ActionListener` wurde durch einen Lambda-Ausdruck ersetzt.
+- Das Projekt wurde mit Gradle konfiguriert.
+- Die Anwendung kann mit Gradle gestartet werden.
+
+Prüfung:
+
+```bash
+.\gradlew spotlessCheck
+.\gradlew build
+.\gradlew run
+```
+
+---
+
+### LockSnake
+
+Das LockSnake-Projekt wurde analysiert und erweitert.
+
+Erledigte Punkte:
+
+- UML-Klassendiagramm erstellt.
+- `GameState` implementiert.
+- `GameEngine` implementiert.
+- Observer-Pattern erklärt.
+- Mindestens 10 JUnit-Tests für `GameState` erstellt.
+- Lambda-Ausdrücke verwendet.
+- Method References verwendet.
+- Gradle-Konfiguration ergänzt.
+- Spotless-Konfiguration ergänzt.
+
+Prüfung:
+
+```bash
+.\gradlew spotlessCheck
+.\gradlew test
+.\gradlew build
+```
+
+---
+
+### Lambda-Ausdrücke
+
+Im LockSnake-Projekt werden folgende Lambda-Ausdrücke verwendet:
+
+```java
+pin -> pin.position().equals(position)
+```
+
+```java
+currentPin -> currentPin.equals(pin) ? currentPin.withState(Pin.State.HIGH) : currentPin
+```
+
+Zusätzlich werden Lambda-Ausdrücke in den Tests verwendet, zum Beispiel bei `assertThrows`.
+
+---
+
+### Method References
+
+Im LockSnake-Projekt werden folgende Method References verwendet:
+
+```java
+Pin::state
+```
+
+```java
+Pin.State::isSet
+```
+
+Diese werden verwendet, um zu prüfen, ob alle Pins gesetzt sind.
+
+---
+
+### JUnit-Tests
+
+Die JUnit-Tests für `GameState` befinden sich hier:
+
+```text
+src/test/java/de/hsbi/lockgame/logic/GameStateTest.java
+```
+
+Es wurden 10 Testfälle erstellt:
+
+- Konstruktor
+- Bewegung ohne Richtung
+- Bewegung auf freies Feld
+- Kollision mit Wand
+- Verlassen des Levels
+- Selbstkollision
+- Pin-Aktivierung
+- falsche Pin-Richtung
+- Gewinnbedingung
+- unveränderliche Pin-Liste
+
+---
+
+### Abgabe-Repositories
+
+Textaufgaben:
+
+```text
+https://github.com/Exoriy/prog2-b03-solutions
+```
+
+Calculator-Projekt:
+
+```text
+https://github.com/Exoriy/prog2-b03-calculator
+```
+
+LockSnake-Projekt:
+
+```text
+https://github.com/Exoriy/prog2-b03-locksnake
+```
+
+---
+
+### Hinweise zur Abgabe
+
+Die Java-Projekte enthalten die vollständigen Build-Skripte und Git-Konfiguration.
+
+Nicht abgegeben werden generierte Ordner wie:
+
+```text
+.gradle/
+.idea/
+build/
+.build/
+out/
+```
+
+---
+
+## Kurze Zusammenfassung
+
+In Blatt 03 habe ich den Calculator mit einer normalen Klasse, einer anonymen Klasse und Lambda-Ausdrücken erweitert. Außerdem habe ich LockSnake analysiert, `GameState` und `GameEngine` implementiert, das Observer-Pattern erklärt und die Spiellogik mit JUnit-Tests überprüft.
