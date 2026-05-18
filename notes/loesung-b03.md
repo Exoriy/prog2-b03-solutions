@@ -193,3 +193,244 @@ Außerdem habe ich die Anwendung gestartet:
 ```
 
 Im Calculator habe ich die Operationen `Add`, `Sub`, `Mul` und `Div` manuell getestet.
+
+
+
+
+---
+
+## 2. LockSnake: Code-Analyse und UML
+
+### Aufgabe
+
+In diesem Teil analysiere ich die vorgegebene Struktur des LockSnake-Projekts. Ziel ist es, die wichtigsten Klassen, Packages und Beziehungen im Projekt zu verstehen und als UML-Klassendiagramm darzustellen.
+
+Das Projekt verwendet das Package `de.hsbi.lockgame`.
+
+Die wichtigsten Klassen liegen in folgenden Packages:
+
+| Package | Klassen |
+|---|---|
+| `de.hsbi.lockgame` | `Main` |
+| `de.hsbi.lockgame.io` | `LevelLoader`, `MusicPlayer` |
+| `de.hsbi.lockgame.logic` | `GameEngine`, `GameState` |
+| `de.hsbi.lockgame.model` | `CellType`, `Direction`, `Level`, `Pin`, `Position`, `Snake` |
+| `de.hsbi.lockgame.settings` | `AudioConstants`, `GameConstants`, `InputConstants`, `LevelConstants`, `TextureConstants` |
+| `de.hsbi.lockgame.ui` | `GamePanel` |
+| `de.hsbi.lockgame.ui.render` | `GameRenderer`, `Java2DRenderer`, `TextureRenderer` |
+
+---
+
+### Analyse der Projektstruktur
+
+Die Projektstruktur sieht vereinfacht so aus:
+
+```text
+src/main/java/de/hsbi/lockgame
+├── Main.java
+├── io
+│   ├── LevelLoader.java
+│   └── MusicPlayer.java
+├── logic
+│   ├── GameEngine.java
+│   └── GameState.java
+├── model
+│   ├── CellType.java
+│   ├── Direction.java
+│   ├── Level.java
+│   ├── Pin.java
+│   ├── Position.java
+│   └── Snake.java
+├── settings
+│   ├── AudioConstants.java
+│   ├── GameConstants.java
+│   ├── InputConstants.java
+│   ├── LevelConstants.java
+│   └── TextureConstants.java
+└── ui
+    ├── GamePanel.java
+    └── render
+        ├── GameRenderer.java
+        ├── Java2DRenderer.java
+        └── TextureRenderer.java
+```
+
+Zusätzlich gibt es Ressourcen unter:
+
+```text
+src/main/resources
+├── audio
+├── levels
+│   ├── level1.txt
+│   └── level2.txt
+└── textures
+```
+
+Die Level-Dateien befinden sich also nicht direkt im Java-Code, sondern werden als Ressourcen geladen.
+
+---
+
+### Wichtige Klassen
+
+| Klasse / Typ | Aufgabe |
+|---|---|
+| `Main` | startet die Anwendung und erzeugt das Spielfenster |
+| `GamePanel` | Swing-Komponente für Darstellung, Timer und Tastatureingaben |
+| `GameEngine` | verwaltet die Spiellogik und aktualisiert den Spielzustand |
+| `GameState` | modelliert den aktuellen Zustand des Spiels |
+| `GameRenderer` | Interface für Renderer |
+| `Java2DRenderer` | rendert das Spiel mit Java2D |
+| `TextureRenderer` | rendert das Spiel mit Texturen |
+| `Level` | beschreibt das Spielfeld |
+| `LevelLoader` | lädt Level-Dateien aus den Ressourcen |
+| `MusicPlayer` | spielt Musik oder Sounds ab |
+| `CellType` | beschreibt Zelltypen des Spielfelds |
+| `Position` | beschreibt Koordinaten auf dem Spielfeld |
+| `Direction` | beschreibt Bewegungsrichtungen |
+| `Pin` | beschreibt einen Pin im Spiel |
+| `Snake` | beschreibt die Schlange |
+
+---
+
+### Analyse der TODO-Stellen
+
+Um die noch offenen Stellen im Projekt zu finden, habe ich folgenden Befehl verwendet:
+
+```bash
+Get-ChildItem -Path src\main\java -Recurse -Filter *.java | Select-String "TODO"
+```
+
+Dabei wurden TODO-Stellen vor allem in diesen Dateien gefunden:
+
+```text
+src/main/java/de/hsbi/lockgame/logic/GameEngine.java
+src/main/java/de/hsbi/lockgame/logic/GameState.java
+```
+
+Das bedeutet, dass vor allem die Spiellogik und der Spielzustand ergänzt werden müssen.
+
+`GameEngine` soll den `GameState` verwalten, auf Tastatureingaben reagieren und Observer benachrichtigen.
+
+`GameState` soll den konkreten Spielzustand speichern und bei jedem Tick aktualisieren.
+
+---
+
+### UML-Klassendiagramm
+
+```mermaid
+classDiagram
+    class Main {
+        +main(String[] args)
+    }
+
+    class GamePanel {
+        -GameEngine gameEngine
+        -GameRenderer renderer
+        +paintComponent(Graphics g)
+    }
+
+    class GameEngine {
+        -GameState gameState
+        +getGameState()
+        +setDirection(Direction direction)
+        +update(Direction direction)
+        +tick()
+    }
+
+    class GameState {
+        -Level level
+        -Snake snake
+        -List~Pin~ pins
+        -Direction direction
+        +tick()
+    }
+
+    class GameRenderer {
+        <<interface>>
+    }
+
+    class Java2DRenderer
+
+    class TextureRenderer
+
+    class Level
+
+    class LevelLoader
+
+    class MusicPlayer
+
+    class CellType {
+        <<enumeration>>
+    }
+
+    class Direction {
+        <<enumeration>>
+    }
+
+    class Position
+
+    class Pin
+
+    class Snake
+
+    Main --> GamePanel : creates
+    Main --> LevelLoader : uses
+    Main --> MusicPlayer : uses
+
+    GamePanel --> GameEngine : uses
+    GamePanel --> GameRenderer : uses
+
+    GameRenderer <|.. Java2DRenderer
+    GameRenderer <|.. TextureRenderer
+
+    GameEngine --> GameState : updates
+    GameEngine --> Direction : receives
+
+    GameState --> Level : contains
+    GameState --> Snake : contains
+    GameState --> Pin : contains many
+
+    LevelLoader --> Level : creates
+    Level --> CellType : uses
+
+    Snake --> Position : uses
+    Pin --> Position : uses
+    Pin --> Direction : uses
+```
+
+---
+
+### Erklärung der Beziehungen
+
+`Main` ist der Einstiegspunkt der Anwendung. Dort wird das Spiel gestartet und das Fenster erzeugt.
+
+`GamePanel` ist für die grafische Darstellung und die Eingaben zuständig. Es verwendet einen Renderer, um den aktuellen Spielzustand zu zeichnen.
+
+`GameRenderer` ist ein Interface. Die Klassen `Java2DRenderer` und `TextureRenderer` implementieren dieses Interface und bieten unterschiedliche Möglichkeiten zur Darstellung.
+
+`GameEngine` enthält die zentrale Spiellogik. Sie verwaltet einen `GameState`, reagiert auf Richtungsänderungen und führt pro Tick eine Aktualisierung aus.
+
+`GameState` enthält den eigentlichen Zustand des Spiels. Dazu gehören das Level, die Snake, die Pins und die aktuelle Richtung.
+
+`LevelLoader` lädt Level-Dateien aus den Ressourcen und erzeugt daraus ein `Level`.
+
+`Snake`, `Pin`, `Position`, `Direction` und `CellType` sind Modellklassen beziehungsweise Datentypen, die für die Beschreibung des Spielzustands benötigt werden.
+
+---
+
+### Ergebnis der Analyse
+
+Die Analyse zeigt, dass das Projekt bereits klar in unterschiedliche Verantwortungsbereiche aufgeteilt ist:
+
+| Bereich | Aufgabe |
+|---|---|
+| `io` | Laden von Leveln und Audio |
+| `logic` | Spiellogik und Spielzustand |
+| `model` | Datenmodell des Spiels |
+| `settings` | Konstanten |
+| `ui` | Darstellung und Benutzereingaben |
+
+Für die weitere Bearbeitung sind besonders die Klassen `GameEngine` und `GameState` wichtig, weil dort die meisten TODO-Stellen liegen und dort die Spiellogik ergänzt werden muss.
+
+
+
