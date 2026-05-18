@@ -434,3 +434,268 @@ Für die weitere Bearbeitung sind besonders die Klassen `GameEngine` und `GameSt
 
 
 
+---
+
+## 3. LockSnake: Implementierung von `GameState` und `GameEngine`
+
+### Aufgabe
+
+In diesem Teil habe ich die fehlende Spiellogik in den Klassen `GameState` und `GameEngine` ergänzt.
+
+`GameState` modelliert den aktuellen Zustand des Spiels. Dazu gehören:
+
+- das Level
+- die Snake
+- die Pins
+- der Spielstatus
+- die aktuell gesetzte Bewegungsrichtung
+
+`GameEngine` verwaltet den aktuellen `GameState`, reagiert auf Richtungsänderungen und führt pro Tick eine Aktualisierung des Spiels aus.
+
+---
+
+### Änderung an `Position`
+
+Für Vergleiche von Positionen habe ich `equals`, `hashCode` und `toString` in `Position` ergänzt.
+
+Das ist wichtig, weil Positionen im Spiel anhand ihrer Koordinaten verglichen werden müssen. Ohne `equals` wären zwei Positionen mit denselben Koordinaten nicht automatisch gleich.
+
+Beispiel:
+
+```java
+@Override
+public boolean equals(Object other) {
+  if (this == other) {
+    return true;
+  }
+
+  if (!(other instanceof Position position)) {
+    return false;
+  }
+
+  return x == position.x && y == position.y;
+}
+```
+
+---
+
+### Implementierung von `GameState`
+
+Der Konstruktor speichert die übergebenen Werte:
+
+```java
+public GameState(
+    Level level, Snake snake, List<Pin> pins, Status status, Direction pendingDirection) {
+  this.level = Objects.requireNonNull(level);
+  this.snake = Objects.requireNonNull(snake);
+  this.pins = List.copyOf(Objects.requireNonNull(pins));
+  this.status = Objects.requireNonNull(status);
+  this.pendingDirection = Objects.requireNonNull(pendingDirection);
+}
+```
+
+Die Getter geben den aktuellen Zustand zurück:
+
+```java
+public Level level() {
+  return level;
+}
+
+public Snake snake() {
+  return snake;
+}
+
+public List<Pin> pins() {
+  return pins;
+}
+
+public Status status() {
+  return status;
+}
+
+public Direction pendingDirection() {
+  return pendingDirection;
+}
+```
+
+---
+
+### Spiellogik in `tick`
+
+Die Methode `tick()` berechnet den nächsten Spielzustand.
+
+Zuerst gibt es einen early exit:
+
+```java
+if (!status.isRunning() || pendingDirection == Direction.NONE) {
+  return this;
+}
+```
+
+Das bedeutet: Wenn das Spiel nicht läuft oder keine Richtung gesetzt ist, ändert sich nichts.
+
+Danach wird die nächste Kopfposition berechnet:
+
+```java
+Position nextHead = snake.nextHead(pendingDirection);
+```
+
+Folgende Fälle werden geprüft:
+
+| Fall | Ergebnis |
+|---|---|
+| Schlange verlässt das Spielfeld | Spielstatus `LOST_OUT_OF_BOUNDS` |
+| Schlange läuft gegen eine Wand | keine Bewegung, Richtung wird `NONE` |
+| Schlange beißt sich selbst | Spielstatus `LOST_SELF_COLLISION` |
+| Schlange läuft falsch auf einen Pin | keine Bewegung, Richtung wird `NONE` |
+| Schlange aktiviert einen Pin korrekt | Pin wird gesetzt |
+| Alle Pins sind gesetzt | Spielstatus `WON` |
+| Normales Feld | Schlange bewegt sich beziehungsweise wächst |
+
+---
+
+### Pin-Logik
+
+Wenn die Schlange auf einen Pin schauen würde, prüfe ich, ob der Pin noch nicht gesetzt ist und ob die Bewegungsrichtung zur Aktivierungsrichtung passt.
+
+```java
+if (pin.state().isSet() || pin.activationDirection() != pendingDirection) {
+  return withDirection(Direction.NONE);
+}
+```
+
+Wenn der Pin korrekt aktiviert wird, wird er auf `HIGH` gesetzt:
+
+```java
+List<Pin> newPins =
+    pins.stream()
+        .map(currentPin -> currentPin.equals(pin) ? currentPin.withState(Pin.State.HIGH) : currentPin)
+        .toList();
+```
+
+Danach wird geprüft, ob alle Pins gesetzt sind:
+
+```java
+private boolean allPinsSet(List<Pin> pins) {
+  return pins.stream().map(Pin::state).allMatch(Pin.State::isSet);
+}
+```
+
+Hier verwende ich auch Method References:
+
+```java
+Pin::state
+Pin.State::isSet
+```
+
+---
+
+### Implementierung von `GameEngine`
+
+`GameEngine` erzeugt beim Start einen initialen `GameState`.
+
+```java
+public GameEngine(Level level) {
+  Objects.requireNonNull(level);
+
+  this.state =
+      new GameState(
+          level,
+          new Snake(List.of(level.snakeStart())),
+          level.pins(),
+          GameState.Status.RUNNING,
+          Direction.NONE);
+}
+```
+
+Die Methode `update(Direction direction)` reagiert auf Tastatureingaben:
+
+```java
+public void update(Direction direction) {
+  if (direction == null || !state.status().isRunning()) {
+    return;
+  }
+
+  state =
+      new GameState(
+          state.level(), state.snake(), state.pins(), state.status(), direction);
+
+  notifyPanel();
+}
+```
+
+Die Methode `tick()` lässt den aktuellen `GameState` einen Schritt weiterlaufen:
+
+```java
+public void tick() {
+  state = state.tick();
+  notifyPanel();
+}
+```
+
+Danach wird das `GamePanel` benachrichtigt:
+
+```java
+private void notifyPanel() {
+  if (panel != null) {
+    panel.update(state);
+  }
+}
+```
+
+Damit ist `GamePanel` der Observer für den `GameState`.
+
+---
+
+### Lambda-Ausdrücke und Method References
+
+In der Implementierung werden Lambda-Ausdrücke und Method References verwendet.
+
+Lambda-Ausdruck:
+
+```java
+pin -> pin.position().equals(position)
+```
+
+Lambda-Ausdruck:
+
+```java
+currentPin -> currentPin.equals(pin) ? currentPin.withState(Pin.State.HIGH) : currentPin
+```
+
+Method References:
+
+```java
+Pin::state
+Pin.State::isSet
+```
+
+---
+
+### Lokale Prüfung
+
+Ich habe die Formatierung angewendet:
+
+```bash
+.\gradlew spotlessApply
+```
+
+Danach habe ich geprüft:
+
+```bash
+.\gradlew spotlessCheck
+```
+
+Anschließend habe ich das Projekt gebaut:
+
+```bash
+.\gradlew build
+```
+
+Zum Schluss habe ich das Spiel gestartet und erfolgreich abgeschlossen:
+
+```bash
+.\gradlew run
+```
+
+
