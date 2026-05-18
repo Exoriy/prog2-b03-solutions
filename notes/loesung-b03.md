@@ -699,3 +699,156 @@ Zum Schluss habe ich das Spiel gestartet und erfolgreich abgeschlossen:
 ```
 
 
+
+---
+
+## 4. LockSnake: Observer-Pattern
+
+### Aufgabe
+
+In LockSnake soll das Observer-Pattern verwendet werden.
+
+Dabei gibt es zwei wichtige Beobachtungsrichtungen:
+
+1. `GameEngine` beobachtet Richtungsänderungen aus dem `GamePanel`.
+2. `GamePanel` beobachtet Änderungen am `GameState`, damit die Oberfläche neu gezeichnet wird.
+
+---
+
+### Richtungseingaben: `GamePanel` -> `GameEngine`
+
+Das `GamePanel` verarbeitet Tastatureingaben. In `setupKeyBindings` wird eine Taste einer `Direction` zugeordnet.
+
+Wenn eine Taste gedrückt wird, ruft das `GamePanel` die Methode `update(Direction direction)` der `GameEngine` auf.
+
+Vereinfacht sieht das so aus:
+
+```java
+gameEngine.update(direction);
+```
+
+Damit ist die `GameEngine` ein Observer für Richtungsänderungen. Das `GamePanel` liefert das Ereignis, und die `GameEngine` reagiert darauf.
+
+Die Methode in `GameEngine` sieht vereinfacht so aus:
+
+```java
+public void update(Direction direction) {
+  if (direction == null || !state.status().isRunning()) {
+    return;
+  }
+
+  state =
+      new GameState(
+          state.level(), state.snake(), state.pins(), state.status(), direction);
+
+  notifyPanel();
+}
+```
+
+Die Richtung wird also nicht direkt im `GamePanel` verarbeitet, sondern an die Spiellogik weitergegeben.
+
+---
+
+### Spielzustand: `GameEngine` -> `GamePanel`
+
+Die `GameEngine` verändert den Spielzustand. Danach muss die Oberfläche neu gezeichnet werden.
+
+Dafür wird das `GamePanel` über den neuen `GameState` informiert:
+
+```java
+private void notifyPanel() {
+  if (panel != null) {
+    panel.update(state);
+  }
+}
+```
+
+Im `GamePanel` wird der neue Zustand gespeichert und anschließend neu gezeichnet:
+
+```java
+public void update(GameState newState) {
+  this.state = newState;
+  repaint();
+}
+```
+
+Damit ist das `GamePanel` ein Observer für Änderungen am `GameState`.
+
+---
+
+### Verbindung in `Main`
+
+In `Main` werden `GameEngine` und `GamePanel` miteinander verbunden.
+
+```java
+engine.setGamePanel(panel);
+panel.setGameEngine(engine);
+```
+
+Dadurch entstehen zwei Kommunikationsrichtungen:
+
+| Richtung | Bedeutung |
+|---|---|
+| `GamePanel` -> `GameEngine` | Tastatureingaben werden als `Direction` an die Spiellogik weitergegeben |
+| `GameEngine` -> `GamePanel` | Änderungen am `GameState` werden an die Oberfläche gemeldet |
+
+---
+
+### Tick-Mechanismus
+
+Der Timer in `Main` ruft regelmäßig `engine.tick()` auf.
+
+```java
+engine.tick();
+```
+
+In `GameEngine` wird dadurch der nächste Zustand berechnet:
+
+```java
+public void tick() {
+  state = state.tick();
+  notifyPanel();
+}
+```
+
+Nach jedem Tick wird also das `GamePanel` informiert, damit die Anzeige aktualisiert wird.
+
+---
+
+### Ein Observer-Pattern
+
+Das Observer-Pattern trennt die Quelle eines Ereignisses von der Reaktion auf dieses Ereignis.
+
+Im Projekt gibt es zwei Beispiele:
+
+| Observable / Quelle | Observer / Empfänger | Ereignis |
+|---|---|---|
+| `GamePanel` | `GameEngine` | neue Richtung durch Tastendruck |
+| `GameEngine` | `GamePanel` | neuer Spielzustand |
+
+Der Vorteil ist, dass Eingabe, Spiellogik und Darstellung getrennt bleiben:
+
+- `GamePanel` muss die Spiellogik nicht selbst berechnen.
+- `GameEngine` muss nicht selbst zeichnen.
+- `GameState` enthält nur Zustandsdaten und Spiellogik.
+- Die Oberfläche wird nur informiert, wenn sich etwas geändert hat.
+
+---
+
+### Lokale Prüfung
+
+Ich habe das Projekt lokal geprüft:
+
+```bash
+.\gradlew spotlessCheck
+.\gradlew build
+```
+
+Außerdem habe ich nach offenen TODO-Stellen gesucht:
+
+```bash
+Get-ChildItem -Path src\main\java -Recurse -Filter *.java | Select-String "TODO"
+```
+
+
+
